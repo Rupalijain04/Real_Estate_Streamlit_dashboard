@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import plotly.express as px
  
 
 # Load cleaned data
@@ -45,31 +46,29 @@ else:
     st.error("❌ This is NOT a Good Investment")
 
 
-# CHART 1 : Price Distribution
-st.subheader("Price Distribution")
-fig1 = plt.figure()
-sns.histplot(df["Price_in_Lakhs"], bins=30)
-plt.ylabel("Count")
-st.pyplot(fig1)
-
-# CHART 2 : CITY-WISE AVERAGE PRICE
-st.subheader("City-wise Average Price")
-
-city_price = df.groupby("City")["Price_in_Lakhs"].mean().sort_values(ascending=False).head(10)
-
-fig2 = plt.figure()
-city_price.plot(kind="bar")
-plt.xlabel("City")
-plt.ylabel("Average Price (Lakhs)")
-st.pyplot(fig2)
-
-# CHART 3 : PROPERTY TYPE COUNT
-if "Property_Type" in df.columns:
-    st.subheader("Property Type Count")
-
-    fig3 = plt.figure()
-    sns.countplot(x=df["Property_Type"])
-    plt.xticks(rotation=45)
-    st.pyplot(fig3)
+# Interactive Price Distribution (Histogram)
+fig1 = px.histogram(df, x="Price_in_Lakhs", nbins=30,
+                    title="Price Distribution",
+                    color_discrete_sequence=["#1f77b4"])
+st.plotly_chart(fig1, use_container_width=True)
 
 
+# Interactive City-wise Average Price Bar Chart
+city_price = df.groupby("City")["Price_in_Lakhs"].mean().reset_index()
+
+fig2 = px.bar(city_price.sort_values("Price_in_Lakhs", ascending=False).head(10),
+              x="City", y="Price_in_Lakhs",
+              title="Top 10 Cities by Average Price",
+              color="Price_in_Lakhs",
+              color_continuous_scale="Blues")
+st.plotly_chart(fig2, use_container_width=True)
+
+
+# Interactive Property Type Count
+fig3 = px.bar(df["Property_Type"].value_counts().reset_index(),
+              x="count", y="Property_Type",
+              labels={"count": "Property Type", "Property_Type": "count"},
+              title="Property Type Distribution",
+              color="Property_Type",
+              color_continuous_scale="Viridis")
+st.plotly_chart(fig3, use_container_width=True)
